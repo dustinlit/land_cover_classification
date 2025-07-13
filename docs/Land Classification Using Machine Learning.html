@@ -3,7 +3,7 @@
 <html lang="en">
 <head><meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-<title>Land Classification rework</title><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.1.10/require.min.js"></script>
+<title>Land Cover Classification Using Machine Learning</title><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.1.10/require.min.js"></script>
 <style type="text/css">
     pre { line-height: 125%; }
 td.linenos .normal { color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px; }
@@ -53,19 +53,6 @@ span.linenos.special { color: #000000; background-color: #ffffc0; padding-left: 
 .highlight .s1 { color: var(--jp-mirror-editor-string-color) } /* Literal.String.Single */
 .highlight .ss { color: var(--jp-mirror-editor-string-color) } /* Literal.String.Symbol */
 .highlight .il { color: var(--jp-mirror-editor-number-color) } /* Literal.Number.Integer.Long */
-  </style>
-<style type="text/css">
-    /*This file contains any manual css for this page that needs to override the global styles.
-This is only required when different pages style the same element differently. This is just
-a hack to deal with our current css styles and no new styling should be added in this file.*/
-
-#ipython-main-app {
-    position: relative;
-}
-#jupyter-main-app {
-    position: relative;
-}
-
   </style>
 <style type="text/css">
 /*-----------------------------------------------------------------------------
@@ -7325,6 +7312,7 @@ a.anchor-link {
                     processEnvironments: true
                 },
                 displayAlign: 'center',
+                messageStyle: 'none',
                 CommonHTML: {
                     linebreaks: {
                     automatic: true
@@ -7540,8 +7528,8 @@ a.anchor-link {
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<p>*<strong>Author:</strong>* Dustin Littlefield <br/>
-*<strong>Date:</strong>* 07/01/2025</p>
+<p><em><strong>Author:</strong></em> Dustin Littlefield <br/>
+<em><strong>Date:</strong></em> 07/01/2025</p>
 </div>
 </div>
 </div>
@@ -7590,7 +7578,7 @@ a.anchor-link {
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<p>*<strong>Tools:</strong>* Python, TensorFlow, Scikit-learn, Pandas, NumPy, Matplotlib, Seaborn
+<p><em><strong>Tools:</strong></em> Python, TensorFlow, Scikit-learn, Pandas, NumPy, Matplotlib, Seaborn
 Techniques: CNN, Random Forest, Ensemble Learning, NDVI Feature Engineering
 Dataset: DeepSat (SAT-4) - Kaggle / NAIP (National Agriculture Imagery Program)
 Project Type: Image Classification, Geospatial Data, Machine Learning</p>
@@ -7617,34 +7605,33 @@ Project Type: Image Classification, Geospatial Data, Machine Learning</p>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
 <div class="highlight hl-ipython3"><pre><span></span><span class="c1"># Data handling</span>
-<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
-<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 
 <span class="c1"># Visualization</span>
-<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
-<span class="kn">import</span> <span class="nn">seaborn</span> <span class="k">as</span> <span class="nn">sns</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">seaborn</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">sns</span>
 
 <span class="c1"># Machine learning (Random Forest)</span>
-<span class="kn">from</span> <span class="nn">sklearn.ensemble</span> <span class="kn">import</span> <span class="n">RandomForestClassifier</span>
-<span class="kn">from</span> <span class="nn">sklearn.metrics</span> <span class="kn">import</span> <span class="n">classification_report</span><span class="p">,</span> <span class="n">confusion_matrix</span><span class="p">,</span> <span class="n">accuracy_score</span>
-<span class="kn">from</span> <span class="nn">sklearn.metrics</span> <span class="kn">import</span> <span class="n">precision_score</span><span class="p">,</span> <span class="n">recall_score</span><span class="p">,</span> <span class="n">f1_score</span>
-<span class="kn">from</span> <span class="nn">sklearn.model_selection</span> <span class="kn">import</span> <span class="n">train_test_split</span>
-<span class="kn">from</span> <span class="nn">sklearn.utils.class_weight</span> <span class="kn">import</span> <span class="n">compute_class_weight</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">sklearn.ensemble</span><span class="w"> </span><span class="kn">import</span> <span class="n">RandomForestClassifier</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">sklearn.metrics</span><span class="w"> </span><span class="kn">import</span> <span class="n">classification_report</span><span class="p">,</span> <span class="n">confusion_matrix</span><span class="p">,</span> <span class="n">accuracy_score</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">sklearn.metrics</span><span class="w"> </span><span class="kn">import</span> <span class="n">precision_score</span><span class="p">,</span> <span class="n">recall_score</span><span class="p">,</span> <span class="n">f1_score</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">sklearn.model_selection</span><span class="w"> </span><span class="kn">import</span> <span class="n">train_test_split</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">sklearn.utils.class_weight</span><span class="w"> </span><span class="kn">import</span> <span class="n">compute_class_weight</span>
 
 <span class="c1"># Deep learning (CNN)</span>
-<span class="kn">import</span> <span class="nn">tensorflow</span> <span class="k">as</span> <span class="nn">tf</span>
-<span class="c1">#from tensorflow.keras import layers, models, Input</span>
-<span class="kn">from</span> <span class="nn">tensorflow.keras</span> <span class="kn">import</span> <span class="n">models</span><span class="p">,</span> <span class="n">layers</span><span class="p">,</span> <span class="n">Input</span>
-<span class="kn">from</span> <span class="nn">tensorflow.keras.models</span> <span class="kn">import</span> <span class="n">Sequential</span>
-<span class="kn">from</span> <span class="nn">tensorflow.keras.layers</span> <span class="kn">import</span> <span class="n">Conv2D</span><span class="p">,</span> <span class="n">MaxPooling2D</span><span class="p">,</span> <span class="n">Dense</span><span class="p">,</span> <span class="n">Flatten</span><span class="p">,</span> <span class="n">Dropout</span>
-<span class="kn">from</span> <span class="nn">tensorflow.keras.utils</span> <span class="kn">import</span> <span class="n">to_categorical</span>
-<span class="kn">from</span> <span class="nn">tensorflow.keras.callbacks</span> <span class="kn">import</span> <span class="n">EarlyStopping</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">tensorflow</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">tf</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">tensorflow.keras</span><span class="w"> </span><span class="kn">import</span> <span class="n">models</span><span class="p">,</span> <span class="n">layers</span><span class="p">,</span> <span class="n">Input</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">tensorflow.keras.models</span><span class="w"> </span><span class="kn">import</span> <span class="n">Sequential</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">tensorflow.keras.layers</span><span class="w"> </span><span class="kn">import</span> <span class="n">Conv2D</span><span class="p">,</span> <span class="n">MaxPooling2D</span><span class="p">,</span> <span class="n">Dense</span><span class="p">,</span> <span class="n">Flatten</span><span class="p">,</span> <span class="n">Dropout</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">tensorflow.keras.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">to_categorical</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">tensorflow.keras.callbacks</span><span class="w"> </span><span class="kn">import</span> <span class="n">EarlyStopping</span>
 
 <span class="c1"># Utility</span>
-<span class="kn">import</span> <span class="nn">random</span>
-<span class="kn">import</span> <span class="nn">warnings</span>
-<span class="kn">import</span> <span class="nn">time</span>
-<span class="kn">from</span> <span class="nn">IPython.display</span> <span class="kn">import</span> <span class="n">clear_output</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">random</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">warnings</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">time</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">IPython.display</span><span class="w"> </span><span class="kn">import</span> <span class="n">clear_output</span>
 <span class="n">warnings</span><span class="o">.</span><span class="n">filterwarnings</span><span class="p">(</span><span class="s1">'ignore'</span><span class="p">)</span>
 </pre></div>
 </div>
@@ -7820,7 +7807,7 @@ Project Type: Image Classification, Geospatial Data, Machine Learning</p>
 <div class="jp-InputPrompt jp-InputArea-prompt">In [4]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-ipython3"><pre><span></span><span class="k">def</span> <span class="nf">add_NDVI</span><span class="p">(</span><span class="n">images</span><span class="p">):</span>
+<div class="highlight hl-ipython3"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">add_NDVI</span><span class="p">(</span><span class="n">images</span><span class="p">):</span>
 
     <span class="c1"># Compute the NDVI and append the result as a 5th channel for each image in the array.</span>
     <span class="c1"># Assumes image_array shape = (N, 28, 28, 4), with Red at index 0 and NIR at index 3.</span>
@@ -7895,7 +7882,7 @@ Project Type: Image Classification, Geospatial Data, Machine Learning</p>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
 <div class="highlight hl-ipython3"><pre><span></span><span class="c1"># a simple function to name a class</span>
-<span class="k">def</span> <span class="nf">class_name</span><span class="p">(</span><span class="n">y_value</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">class_name</span><span class="p">(</span><span class="n">y_value</span><span class="p">):</span>
     <span class="k">return</span> <span class="p">[</span><span class="s1">'barren'</span><span class="p">,</span> <span class="s1">'trees'</span><span class="p">,</span> <span class="s1">'grass'</span><span class="p">,</span> <span class="s1">'other'</span><span class="p">][</span><span class="n">y_value</span><span class="p">]</span>
 </pre></div>
 </div>
@@ -8184,7 +8171,7 @@ Test labels: (300, 4)
 <blockquote>
 <p>Example:</p>
 </blockquote>
-$$
+<p>$$
 \overset{\text{Filter}}{\begin{pmatrix}
 1 &amp; 2 &amp; 3 \\
 4 &amp; 5 &amp; 6 \\
@@ -8204,11 +8191,11 @@ $$
 154 &amp; 285 &amp; 154 \\
 106 &amp; 186 &amp; 94
 \end{pmatrix}}
-$$<hr/>
+$$</p>
+<hr/>
 <h4 id="Pooling-Layers">Pooling Layers<a class="anchor-link" href="#Pooling-Layers">¶</a></h4><p>Reduce the size of feature maps by selecting the <strong>maximum</strong> value in small 2×2 windows — helps reduce noise and overfitting.</p>
 <blockquote>
-<p>Example:</p>
-</blockquote>
+<p>Example:
 $$
 \overset{\text{Filter shape:}}{\begin{pmatrix}
 a &amp; b \\
@@ -8225,7 +8212,9 @@ c &amp; d
 285 &amp; 285 \\
 285 &amp; 285
 \end{pmatrix}}
-$$<hr/>
+$$</p>
+</blockquote>
+<hr/>
 <h4 id="Flatten-Layer">Flatten Layer<a class="anchor-link" href="#Flatten-Layer">¶</a></h4><p>Converts 3D feature maps into a 1D array for input into fully connected layers.</p>
 <hr/>
 <h4 id="Dense-Layers">Dense Layers<a class="anchor-link" href="#Dense-Layers">¶</a></h4><p>Dense layers take the output from the previous convolution and pooling layers — now flattened into a 1D vector — and use it to make predictions. These layers work just like a traditional neural network:</p>
@@ -8243,31 +8232,6 @@ $$<hr/>
 <li><strong>Metrics</strong>: Accuracy, precision, recall</li>
 </ul>
 </details>
-</div>
-</div>
-</div>
-</div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=a4b83759">
-<div class="jp-Cell-inputWrapper" tabindex="0">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
-</div>
-<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
-</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h1 id="Define-the-model">Define the model<a class="anchor-link" href="#Define-the-model">¶</a></h1><p>cnn_model = models.Sequential([
-    layers.Input(shape=(28, 28, 5)),
-    layers.Conv2D(64, (3, 3), activation='relu',padding='same'),
-    layers.MaxPooling2D((2, 2)),
-    layers.Conv2D(128, (3, 3), activation='relu',padding='same'),
-    layers.MaxPooling2D((2, 2)),
-    layers.Conv2D(256, (3, 3), activation='relu',padding='same'),
-    layers.Flatten(),
-    layers.Dense(256, activation='relu'),
-    layers.Dense(4, activation='softmax')
-])</p>
-<h1 id="Compile-the-model">Compile the model<a class="anchor-link" href="#Compile-the-model">¶</a></h1><p>cnn_model.compile(optimizer='adam',
-              loss='categorical_crossentropy',  # Multi-class classification loss
-              metrics=['accuracy'])</p>
-<h1 id="Summary-of-the-model-architecture">Summary of the model architecture<a class="anchor-link" href="#Summary-of-the-model-architecture">¶</a></h1><p>cnn_model.summary()</p>
 </div>
 </div>
 </div>
@@ -8991,20 +8955,6 @@ $$<hr/>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=f09e747c">
-<div class="jp-Cell-inputWrapper" tabindex="0">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
-</div>
-<div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
-<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
-<div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-ipython3"><pre><span></span> 
-</pre></div>
-</div>
-</div>
-</div>
-</div>
 </div>
 <div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=724d6fc5">
 <div class="jp-Cell-inputWrapper" tabindex="0">
@@ -9497,7 +9447,7 @@ Some key takeaways:</p>
 <div class="jp-InputPrompt jp-InputArea-prompt">In [28]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-ipython3"><pre><span></span><span class="k">def</span> <span class="nf">get_average_NDVI</span><span class="p">(</span><span class="n">images</span><span class="p">,</span> <span class="n">y</span><span class="p">):</span>
+<div class="highlight hl-ipython3"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">get_average_NDVI</span><span class="p">(</span><span class="n">images</span><span class="p">,</span> <span class="n">y</span><span class="p">):</span>
     <span class="n">data</span> <span class="o">=</span> <span class="p">{</span><span class="s1">'NDVI'</span><span class="p">:</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="s1">'Count'</span><span class="p">:</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]}</span>
     <span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
 
@@ -9508,7 +9458,7 @@ Some key takeaways:</p>
 
     <span class="k">return</span> <span class="n">df</span><span class="p">[</span><span class="s1">'NDVI'</span><span class="p">]</span> <span class="o">/</span> <span class="n">df</span><span class="p">[</span><span class="s1">'Count'</span><span class="p">]</span>
 
-<span class="k">def</span> <span class="nf">NDVI_average</span><span class="p">(</span><span class="n">X_test</span><span class="p">,</span> <span class="n">X_full</span><span class="p">,</span> <span class="n">y_pred</span><span class="p">,</span> <span class="n">y_true_onehot</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">NDVI_average</span><span class="p">(</span><span class="n">X_test</span><span class="p">,</span> <span class="n">X_full</span><span class="p">,</span> <span class="n">y_pred</span><span class="p">,</span> <span class="n">y_true_onehot</span><span class="p">):</span>
     <span class="n">y_true</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">y_true_onehot</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
 
     <span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">({</span><span class="s1">'Land Type'</span><span class="p">:</span> <span class="p">[</span><span class="s1">'barren'</span><span class="p">,</span> <span class="s1">'trees'</span><span class="p">,</span> <span class="s1">'grass'</span><span class="p">,</span> <span class="s1">'other'</span><span class="p">]})</span>
@@ -9623,7 +9573,7 @@ Some key takeaways:</p>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
 <div class="highlight hl-ipython3"><pre><span></span><span class="c1"># Function to add a border around an image</span>
-<span class="k">def</span> <span class="nf">add_border</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">border_color</span><span class="p">,</span> <span class="n">border_width</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">add_border</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">border_color</span><span class="p">,</span> <span class="n">border_width</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">"""Adds a border around the chunk with the specified color and width"""</span>
     <span class="n">image_with_border</span> <span class="o">=</span> <span class="n">image</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
     
@@ -9769,20 +9719,6 @@ Avg NDVI         : -0.2355
 </ul>
 <h3 id="Summary">Summary<a class="anchor-link" href="#Summary">¶</a></h3><p>This project demonstrates that combining <strong>convolutional neural networks</strong> for spatial feature extraction with <strong>random forests</strong> for classification is a powerful approach to land cover analysis using satellite imagery.</p>
 <p>The ensemble model produced <strong>high accuracy</strong> while maintaining flexibility, interpretability, and alignment with ecological indicators like NDVI — suggesting that hybrid models can deliver both robust results and real-world insight in remote sensing applications.</p>
-</div>
-</div>
-</div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=3da6e993">
-<div class="jp-Cell-inputWrapper" tabindex="0">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
-</div>
-<div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
-<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
-<div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-ipython3"><pre><span></span> 
-</pre></div>
-</div>
 </div>
 </div>
 </div>
